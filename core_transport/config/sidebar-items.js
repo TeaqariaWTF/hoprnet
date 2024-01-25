@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["HostType"],"fn":["is_reachable_domain","looks_like_domain"],"struct":["HeartbeatConfig","HostConfig","NetworkConfig","ProtocolConfig","TransportConfig"]};

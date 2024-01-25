@@ -1,0 +1,126 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This crate contains all the Strategies for HOPRd."><title>core_strategy - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-b1a3e7f8283b8434.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="core_strategy" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (7ffc697ce 2024-01-24)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../core_strategy/index.html">core_strategy</a><span class="version">0.7.0</span></h2></div><div class="sidebar-elems"><ul class="block">
+            <li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#modules">Modules</a></li><li><a href="#enums">Enums</a></li><li><a href="#functions">Functions</a></li><li><a href="#types">Type Aliases</a></li></ul></section></div></nav><div class="sidebar-resizer"></div>
+    <main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../core_strategy/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">core_strategy</a><button id="copy-path" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../src/core_strategy/lib.rs.html#1-215">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This crate contains all the Strategies for HOPRd.</p>
+<ul>
+<li>passive strategy</li>
+<li>promiscuous strategy</li>
+<li>auto funding strategy</li>
+<li>auto redeeming strategy</li>
+<li>aggregating strategy</li>
+<li>multi strategy</li>
+</ul>
+<p>HOPRd can be configured to use any of the above strategies. See the Configuration section below.</p>
+<h3 id="passive-strategy"><a class="doc-anchor" href="#passive-strategy">§</a>Passive Strategy</h3>
+<p>This strategy does nothing.</p>
+<h3 id="promiscuous-strategy"><a class="doc-anchor" href="#promiscuous-strategy">§</a>Promiscuous Strategy</h3>
+<p>This strategy opens or closes automatically channels based the following rules:</p>
+<ul>
+<li>if node quality is below or equal to a threshold <code>network_quality_threshold</code> and we have a channel opened to it, the strategy will close it
+<ul>
+<li>if node quality is above <code>network_quality_threshold</code> and no channel is opened yet, it will try to open channel to it (with initial stake <code>new_channel_stake</code>).
+However, the channel is opened only if the following is both true:</li>
+<li>the total node balance does not drop below <code>minimum_node_balance</code></li>
+<li>the number of channels opened by this strategy does not exceed <code>max_channels</code></li>
+</ul>
+</li>
+</ul>
+<p>Also, the candidates for opening (quality &gt; <code>network_quality_threshold</code>), are sorted by best quality first.
+So that means if some nodes cannot have channel opened to them, because we hit <code>minimum_node_balance</code> or <code>max_channels</code>,
+the better quality ones were taking precedence.</p>
+<p>The sorting algorithm is intentionally unstable, so that the nodes which have the same quality get random order.
+The constant <code>k</code> can be also set to a value &gt; 1, which will make the strategy to open more channels for smaller networks,
+but it would keep the same asymptotic properties.
+Per default <code>k</code> = 1.</p>
+<p>The strategy starts acting only after at least <code>min_network_size_samples</code> network size samples were gathered, which means
+it does not start opening/closing channels earlier than <code>min_network_size_samples</code> number of minutes after the node has started.</p>
+<h4 id="default-parameters"><a class="doc-anchor" href="#default-parameters">§</a>Default parameters</h4>
+<ul>
+<li><code>network_quality_threshold</code>: 0.5</li>
+<li><code>new_channel_stake</code>: 10 HOPR</li>
+<li><code>minimum_node_balance</code>: 10 HOPR</li>
+<li><code>min_network_size_samples</code>: 10</li>
+<li><code>max_channels:</code> None (defaults to square root of network size)</li>
+<li><code>enforce_max_channels</code>: true (when set, indicates whether the <code>max_channels</code> limit is enforced)</li>
+</ul>
+<h3 id="auto-funding-strategy"><a class="doc-anchor" href="#auto-funding-strategy">§</a>Auto Funding Strategy</h3>
+<p>This strategy listens for channel state change events to check whether a channel has dropped below <code>min_stake_threshold</code> HOPR.
+If this happens, the strategy issues a <strong>fund channel</strong> transaction to re-stake the channel with <code>funding_amount</code> HOPR.</p>
+<h4 id="default-parameters-1"><a class="doc-anchor" href="#default-parameters-1">§</a>Default parameters</h4>
+<ul>
+<li><code>min_stake_threshold</code>: 1 HOPR</li>
+<li><code>funding_amount</code>: 10 HOPR</li>
+</ul>
+<h3 id="auto-redeeming-strategy"><a class="doc-anchor" href="#auto-redeeming-strategy">§</a>Auto Redeeming Strategy</h3>
+<p>Strategy which listens for newly added acknowledged tickets and automatically issues a redeem transaction on that ticket.
+It can be configured to automatically redeem all tickets or only aggregated tickets (which results in far less on-chain transactions being issued).</p>
+<h4 id="default-parameters-2"><a class="doc-anchor" href="#default-parameters-2">§</a>Default parameters</h4>
+<ul>
+<li><code>redeem_only_aggregated</code>: false</li>
+</ul>
+<h3 id="aggregating-strategy"><a class="doc-anchor" href="#aggregating-strategy">§</a>Aggregating Strategy</h3>
+<p>This strategy automates ticket aggregation on different channel/ticket events.
+Note that the aggregating strategy can be combined with the Auto Redeem Strategy above.</p>
+<p>Ticket aggregation is an interactive process and requires cooperation of the ticket issuer, the aggregation
+will fail if the aggregation takes more than <code>aggregation_timeout</code> (in seconds). This does not affect runtime of the
+strategy, since the ticket aggregation and awaiting it is performed on a separate thread.</p>
+<p>This strategy listens for two distinct channel events and triggers the interactive aggregation based on different criteria:</p>
+<h4 id="1-new-winning-acknowledged-ticket-event"><a class="doc-anchor" href="#1-new-winning-acknowledged-ticket-event">§</a>1) New winning acknowledged ticket event</h4>
+<p>This strategy listens to newly added acknowledged winning tickets and once the amount of tickets in a certain channel reaches
+an <code>aggregation_threshold</code>, the strategy will initiate ticket aggregation in that channel.
+The strategy can independently also check if the unrealized balance (current balance <em>minus</em> total unredeemed unaggregated tickets value) in a certain channel
+has not gone over <code>unrelalized_balance_ratio</code> percent of the current balance in that channel. If that happens, the strategy will also initiate
+ticket aggregation.</p>
+<h4 id="2-channel-transition-from-open-to-pendingtoclose-event"><a class="doc-anchor" href="#2-channel-transition-from-open-to-pendingtoclose-event">§</a>2) Channel transition from <code>Open</code> to <code>PendingToClose</code> event</h4>
+<p>If the <code>aggregate_on_channel_close</code> flag is set, the aggregation will be triggered once a channel transitions from <code>Open</code> to <code>PendingToClose</code> state.
+This behavior does not have any additional criteria, unlike in the previous event.</p>
+<p>The aggregation on channel closure slightly differs in what happens on failure behaviour.
+If the aggregation on channel closure fails, the unaggregated tickets in that channel are automatically send for redeeming.
+When this strategy is triggered from the</p>
+<h4 id="default-parameters-3"><a class="doc-anchor" href="#default-parameters-3">§</a>Default parameters</h4>
+<ul>
+<li><code>aggregation_threshold</code>: 100 tickets</li>
+<li><code>unrealized_balance_ratio</code>: 0.9 (= 90%)</li>
+<li><code>aggregation_timeout</code>: 60 seconds</li>
+<li><code>aggregate_on_channel_close</code>: true</li>
+</ul>
+<h3 id="multi-strategy"><a class="doc-anchor" href="#multi-strategy">§</a>Multi Strategy</h3>
+<p>This strategy can stack multiple above strategies (called sub-strategies in this context) into one.
+Once a strategy event is triggered, it is executed sequentially on the sub-strategies one by one.
+The strategy can be configured to not call the next sub-strategy event if the sub-strategy currently being executed failed,
+which is done by setting the <code>on_fail_continue</code> flag.</p>
+<p>Hence, the sub-strategy chain then can behave as a logical AND (<code>on_fail_continue</code> = <code>false</code>) execution chain
+or logical OR (<code>on_fail_continue</code> = <code>true</code>) execution chain.</p>
+<p>A Multi Strategy can also contain another Multi Strategy as a sub-strategy if <code>allow_recursive</code> flag is set.
+However, this recursion is always allowed up to 2 levels only.
+Along with the <code>on_fail_continue</code> value, the recursive feature allows constructing more complex logical strategy chains.</p>
+<p>The MultiStrategy can also observe channels being <code>PendingToClose</code> and running out of closure grace period,
+and if this happens, it will issue automatically the final close transaction, which transitions the state to <code>Closed</code>.
+This can be controlled by the <code>finalize_channel_closure</code> parameter.</p>
+<h4 id="default-parameters-4"><a class="doc-anchor" href="#default-parameters-4">§</a>Default parameters</h4>
+<ul>
+<li><code>on_fail_continue</code>: true</li>
+<li><code>allow_recursive</code>: true</li>
+<li><code>finalize_channel_closure</code>: false</li>
+<li><code>strategies</code>: none (the Multi strategy behaves as Passive strategy per default)</li>
+</ul>
+<h3 id="configuring-strategies-in-hoprd"><a class="doc-anchor" href="#configuring-strategies-in-hoprd">§</a>Configuring strategies in HOPRd</h3>
+<p>There are two ways of configuring strategies in HOPRd: via CLI and via a YAML config file.</p>
+<p>The configuration through CLI allows only fairly primitive single-strategy setting, through the <code>defaultStrategy</code>
+parameter. It can be set to any of the above strategies, however the strategy parameters are not further
+configurable via the CLI and will always have their default values.
+In addition, if <code>disableTicketAutoRedeem</code> CLI argument is <code>false</code>, the default Auto Redeem strategy is added to the
+strategy configured via the <code>defaultStrategy</code> argument (they execute together as Multi strategy).</p>
+<p>For more complex strategy configurations, the YAML configuration method is recommended via the <code>strategy</code> YAML section.
+In this case, the top-most strategy is always assumed to be Multi strategy:</p>
+<div class="example-wrap"><pre class="language-yaml"><code>strategy:
+  on_fail_continue: true
+  allow_recursive: true
+  strategies:
+    - !Promiscuous
+      max_channels: 50
+      new_channel_stake: 20
+    - !AutoFunding
+      funding_amount: 20
+    - !Aggregating:
+      aggregation_threshold: 1000
+</code></pre></div></div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="mod" href="aggregating/index.html" title="mod core_strategy::aggregating">aggregating</a></div></li><li><div class="item-name"><a class="mod" href="auto_funding/index.html" title="mod core_strategy::auto_funding">auto_funding</a></div></li><li><div class="item-name"><a class="mod" href="auto_redeeming/index.html" title="mod core_strategy::auto_redeeming">auto_redeeming</a></div></li><li><div class="item-name"><a class="mod" href="decision/index.html" title="mod core_strategy::decision">decision</a></div></li><li><div class="item-name"><a class="mod" href="errors/index.html" title="mod core_strategy::errors">errors</a></div></li><li><div class="item-name"><a class="mod" href="promiscuous/index.html" title="mod core_strategy::promiscuous">promiscuous</a></div></li><li><div class="item-name"><a class="mod" href="strategy/index.html" title="mod core_strategy::strategy">strategy</a></div></li></ul><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="enum" href="enum.Strategy.html" title="enum core_strategy::Strategy">Strategy</a></div><div class="desc docblock-short">Enumerates all possible strategies with their respective configurations.</div></li></ul><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="fn" href="fn.hopr_default_strategies.html" title="fn core_strategy::hopr_default_strategies">hopr_default_strategies</a></div><div class="desc docblock-short">Default HOPR node strategies:</div></li></ul><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="type" href="type.StrategyConfig.html" title="type core_strategy::StrategyConfig">StrategyConfig</a></div></li></ul></section></div></main></body></html>
